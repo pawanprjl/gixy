@@ -47,7 +47,7 @@ func runGenerate(ctx context.Context) error {
 		return cli.Exit(fmt.Errorf("init provider: %w", err), 1)
 	}
 
-	message, err := provider.GenerateCommitMessage(ctx, diff)
+	message, err := commitgen.GenerateCommitMessage(ctx, diff, provider)
 	if err != nil {
 		return cli.Exit(fmt.Errorf("generate message: %w", err), 1)
 	}

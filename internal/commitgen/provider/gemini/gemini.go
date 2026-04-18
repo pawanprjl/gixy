@@ -8,15 +8,6 @@ import (
 	"google.golang.org/genai"
 )
 
-const systemPrompt = `You are an expert software engineer. Generate a concise, conventional commit message for the following git diff.
-
-Rules:
-- Use the conventional commits format: <type>: <description>
-- Types: feat, fix, docs, style, refactor, test, chore
-- Keep the subject line under 72 characters
-- Use the imperative mood ("add" not "added")
-- Output only the commit message — no explanation, no markdown, no quotes`
-
 // Provider implements commitgen.Provider using the Google Gemini API.
 type Provider struct {
 	client *genai.Client
@@ -44,10 +35,8 @@ func New(model, apiKey string) (*Provider, error) {
 	return &Provider{client: client, model: model}, nil
 }
 
-// GenerateCommitMessage sends the diff to Gemini and returns a commit message.
-func (p *Provider) GenerateCommitMessage(ctx context.Context, diff string) (string, error) {
-	prompt := systemPrompt + "\n\n```diff\n" + diff + "\n```"
-
+// Generate sends the prompt to Gemini and returns the generated text.
+func (p *Provider) Generate(ctx context.Context, prompt string) (string, error) {
 	result, err := p.client.Models.GenerateContent(ctx, p.model, genai.Text(prompt), nil)
 	if err != nil {
 		return "", fmt.Errorf("gemini generate content: %w", err)

@@ -8,9 +8,9 @@ import (
 )
 
 // Provider is the interface that all AI provider implementations must satisfy.
-// It is intentionally minimal so the package can be extracted as a standalone library.
+// Implementations are thin adapters: they accept a fully-formed prompt and return raw text.
 type Provider interface {
-	GenerateCommitMessage(ctx context.Context, diff string) (string, error)
+	Generate(ctx context.Context, prompt string) (string, error)
 }
 
 // ProviderConfig holds the configuration required to construct a Provider.
@@ -29,4 +29,15 @@ func NewProvider(cfg ProviderConfig) (Provider, error) {
 	default:
 		return nil, fmt.Errorf("unsupported provider %q; supported: gemini", cfg.Provider)
 	}
+}
+
+// GenerateCommitMessage builds the prompt from the staged diff and calls the provider.
+// This is the single entry point for commit message generation.
+func GenerateCommitMessage(ctx context.Context, diff string, p Provider) (string, error) {
+	prompt := BuildPrompt(diff)
+	msg, err := p.Generate(ctx, prompt)
+	if err != nil {
+		return "", fmt.Errorf("generate commit message: %w", err)
+	}
+	return msg, nil
 }
