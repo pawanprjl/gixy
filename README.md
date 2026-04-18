@@ -9,7 +9,8 @@ A CLI companion for git that adds workflow enhancements on top of your existing 
 ## Features
 
 - **Profile management** — define named author profiles (name + email) and switch between them per-repo in one command
-- **XDG-compliant config** — profiles stored in `~/.config/gixy/config` (respects `$XDG_CONFIG_HOME`)
+- **AI commit messages** — generate conventional commit messages from staged changes using AI (currently supports Gemini)
+- **XDG-compliant config** — config stored in `~/.config/gixy/config` (respects `$XDG_CONFIG_HOME`)
 - **Extensible** — designed to grow with more git-enhancing commands over time
 
 ---
@@ -39,11 +40,63 @@ gixy profile list
 # Apply a profile to the current repository
 gixy profile use <profile-name>
 # Writes user.name and user.email to the repo's local .git/config
+
+# Delete a profile
+gixy profile delete <profile-name>
 ```
 
-## Profile storage
+### Commit message generation
 
-Profiles are stored in:
+Generate a commit message from your staged changes using an AI provider.
+
+**1. Add a provider (one-time setup)**
+
+```sh
+gixy commit config add <name> --provider gemini --model gemini-2.0-flash --api-key <key>
+```
+
+| Flag         | Description                                |
+| ------------ | ------------------------------------------ |
+| `--provider` | AI provider. Currently supported: `gemini` |
+| `--model`    | Model name (e.g. `gemini-2.0-flash`)       |
+| `--api-key`  | API key for the provider                   |
+
+The first provider added is automatically set as active.
+
+**2. Stage your changes and generate**
+
+```sh
+git add <files>
+gixy commit generate
+```
+
+gixy reads the staged diff, calls the active provider, and displays a suggested commit message. You'll be prompted to confirm before the commit is made:
+
+```
+Suggested commit message:
+feat(auth): add OAuth2 login support
+
+Use this message? [y/N]:
+```
+
+If you confirm with `y`, gixy runs `git commit -m <message>` for you.
+
+**Managing providers**
+
+```sh
+# List all configured providers (* marks the active one)
+gixy commit config list
+
+# Switch the active provider
+gixy commit config use <name>
+
+# Remove a provider (alias: delete)
+gixy commit config remove <name>
+```
+
+## Config storage
+
+All gixy data is stored in a single JSON file:
 
 ```
 $XDG_CONFIG_HOME/gixy/config
@@ -64,9 +117,21 @@ Example config:
       "name": "Jane Doe",
       "email": "jane.doe@company.com"
     }
+  },
+  "commit_gen": {
+    "active": "personal-gemini",
+    "providers": {
+      "personal-gemini": {
+        "provider": "gemini",
+        "model": "gemini-2.0-flash",
+        "api_key": "AIza..."
+      }
+    }
   }
 }
 ```
+
+> **Note:** API keys are stored in plaintext in this file. Make sure the file permissions are restrictive (gixy sets `0600` on write).
 
 ---
 
