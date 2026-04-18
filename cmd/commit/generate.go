@@ -27,8 +27,13 @@ func runGenerate(ctx context.Context) error {
 	if err != nil {
 		return cli.Exit(fmt.Errorf("load config: %w", err), 1)
 	}
-	if cfg.CommitGen == nil {
-		return cli.Exit(colors.Red("commit generation is not configured; run `gixy commit setup` first"), 1)
+	if cfg.CommitGen == nil || cfg.CommitGen.Active == "" {
+		return cli.Exit(colors.Red("commit generation is not configured; run `gixy commit config add` first"), 1)
+	}
+
+	entry, exists := cfg.CommitGen.Providers[cfg.CommitGen.Active]
+	if !exists {
+		return cli.Exit(colors.Red(fmt.Sprintf("active provider %q not found; run `gixy commit config use` to set a valid provider", cfg.CommitGen.Active)), 1)
 	}
 
 	diff, err := commitgen.GetStagedDiff(ctx)
@@ -39,9 +44,9 @@ func runGenerate(ctx context.Context) error {
 	fmt.Println(colors.Cyan("Generating commit message..."))
 
 	provider, err := commitgen.NewProvider(commitgen.ProviderConfig{
-		Provider: cfg.CommitGen.Provider,
-		Model:    cfg.CommitGen.Model,
-		APIKey:   cfg.CommitGen.APIKey,
+		Provider: entry.Provider,
+		Model:    entry.Model,
+		APIKey:   entry.APIKey,
 	})
 	if err != nil {
 		return cli.Exit(fmt.Errorf("init provider: %w", err), 1)

@@ -13,10 +13,15 @@ type Profile struct {
 	Email string `json:"email"`
 }
 
-type CommitGenConfig struct {
+type CommitGenEntry struct {
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 	APIKey   string `json:"api_key"`
+}
+
+type CommitGenConfig struct {
+	Active    string                    `json:"active"`
+	Providers map[string]CommitGenEntry `json:"providers"`
 }
 
 type Config struct {
@@ -52,6 +57,9 @@ func LoadConfig() (*Config, error) {
 	}
 	if cfg.Profiles == nil {
 		cfg.Profiles = make(map[string]Profile)
+	}
+	if cfg.CommitGen != nil && cfg.CommitGen.Providers == nil {
+		cfg.CommitGen.Providers = make(map[string]CommitGenEntry)
 	}
 	return &cfg, nil
 }
