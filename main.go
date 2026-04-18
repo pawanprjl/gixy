@@ -21,6 +21,7 @@ func main() {
 					&profile.AddCommand,
 					&profile.ListCommand,
 					&profile.DeleteCommand,
+					&profile.UseCommand,
 				},
 			},
 		},
