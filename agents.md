@@ -16,8 +16,8 @@ This file provides context for AI coding agents (e.g. GitHub Copilot) working in
 | --------------- | ---------------------------------------------- |
 | Language        | Go (1.21+)                                     |
 | CLI framework   | [urfave/cli v3](https://github.com/urfave/cli) |
-| Config storage  | JSON file at `$XDG_CONFIG_HOME/gixy/config`    |
-| Config path     | Resolved via `os.UserConfigDir()`              |
+| Config storage  | JSON file at `~/.config/gixy/config`           |
+| Config path     | Resolved via `os.UserHomeDir()` + `.config`    |
 
 ---
 
@@ -44,12 +44,12 @@ Each feature gets its own subdirectory under `cmd/`. Internal packages are share
 
 ### 1. Config store
 
-All persistent data lives in a single JSON file at `$XDG_CONFIG_HOME/gixy/config` (defaults to `~/.config/gixy/config`). The store in `internal/config/store.go` is the shared read/write layer used by all commands:
+All persistent data lives in a single JSON file at `~/.config/gixy/config` on all platforms. The store in `internal/config/store.go` is the shared read/write layer used by all commands:
 
 - `LoadConfig()` — reads and parses the config file
 - `SaveConfig(cfg)` — marshals and writes back
 
-The config path is resolved via `os.UserConfigDir()`, which handles XDG on Linux and `~/Library/Application Support` on macOS automatically.
+The config path is resolved via `os.UserHomeDir()` joined with `.config/gixy/config`, ensuring a consistent `~/.config` location on all platforms including macOS.
 
 ---
 
@@ -66,11 +66,13 @@ The config path is resolved via `os.UserConfigDir()`, which handles XDG on Linux
 
 ## Conventions
 
+- **Scope discipline** — implement only what is explicitly listed in the agreed plan. Do not add extra commands, flags, helpers, or features beyond what was drafted, even if they seem useful or are mentioned elsewhere (e.g. README roadmap)
 - **Error handling** — wrap errors with `fmt.Errorf("context: %w", err)`; surface to the user via `cli.Exit(err, 1)`
 - **No global state** — pass config/store as function arguments, not package-level vars
 - **No silent failures** — always return or log errors; never swallow them
 - **urfave/cli v3** — use `context.Context, *cli.Command` action signatures (v3 changed the first arg from `*cli.Context` to `context.Context`); prefer `cli.Command` structs
 - **Config directory creation** — `os.MkdirAll` the config dir on first write; don't assume it exists
+- **File creation (VS Code)** — VS Code may auto-insert a `package <name>` line when creating a new `.go` file; when writing file contents via a tool, always verify the final file has exactly one `package` declaration at the top to avoid `syntax error: non-declaration statement outside function body` compile errors
 
 ---
 
