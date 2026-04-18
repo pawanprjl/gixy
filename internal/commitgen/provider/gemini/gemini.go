@@ -10,12 +10,13 @@ import (
 
 // Provider implements commitgen.Provider using the Google Gemini API.
 type Provider struct {
-	client *genai.Client
-	model  string
+	client       *genai.Client
+	model        string
+	systemPrompt string
 }
 
 // New creates a new Gemini Provider. Returns an error if the API key or model is empty.
-func New(model, apiKey string) (*Provider, error) {
+func New(model, apiKey, systemPrompt string) (*Provider, error) {
 	if model == "" {
 		return nil, fmt.Errorf("model must not be empty")
 	}
@@ -32,12 +33,18 @@ func New(model, apiKey string) (*Provider, error) {
 		return nil, fmt.Errorf("create gemini client: %w", err)
 	}
 
-	return &Provider{client: client, model: model}, nil
+	return &Provider{client: client, model: model, systemPrompt: systemPrompt}, nil
 }
 
 // Generate sends the prompt to Gemini and returns the generated text.
 func (p *Provider) Generate(ctx context.Context, prompt string) (string, error) {
-	result, err := p.client.Models.GenerateContent(ctx, p.model, genai.Text(prompt), nil)
+	config := &genai.GenerateContentConfig{
+		SystemInstruction: &genai.Content{
+			Parts: []*genai.Part{{Text: p.systemPrompt}},
+		},
+	}
+
+	result, err := p.client.Models.GenerateContent(ctx, p.model, genai.Text(prompt), config)
 	if err != nil {
 		return "", fmt.Errorf("gemini generate content: %w", err)
 	}

@@ -25,7 +25,7 @@ type ProviderConfig struct {
 func NewProvider(cfg ProviderConfig) (Provider, error) {
 	switch cfg.Provider {
 	case "gemini":
-		return gemini.New(cfg.Model, cfg.APIKey)
+		return gemini.New(cfg.Model, cfg.APIKey, SystemPrompt)
 	default:
 		return nil, fmt.Errorf("unsupported provider %q; supported: gemini", cfg.Provider)
 	}
