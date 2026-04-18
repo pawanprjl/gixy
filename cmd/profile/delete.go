@@ -11,6 +11,7 @@ import (
 
 var DeleteCommand = cli.Command{
 	Name:      "delete",
+	Aliases:   []string{"remove"},
 	Usage:     "Delete a profile",
 	ArgsUsage: "<profile-name>",
 	Action:    deleteProfile,
