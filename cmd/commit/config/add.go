@@ -3,6 +3,8 @@ package commitconfig
 import (
 	"context"
 	"fmt"
+	"slices"
+	"strings"
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
@@ -29,8 +31,8 @@ var AddCommand = cli.Command{
 		model := cmd.String("model")
 		apiKey := cmd.String("api-key")
 
-		if provider != "gemini" {
-			return cli.Exit(colors.Red(fmt.Sprintf("unsupported provider %q; supported: gemini", provider)), 1)
+		if !slices.Contains(supportedProviders, provider) {
+			return cli.Exit(colors.Red(fmt.Sprintf("unsupported provider %q; supported: %s", provider, strings.Join(supportedProviders, ", "))), 1)
 		}
 
 		cfg, err := config.LoadConfig()

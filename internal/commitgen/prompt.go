@@ -1,15 +1,23 @@
 package commitgen
 
-const systemPrompt = `You are an expert software engineer. Generate a concise, conventional commit message for the following git diff.
+// SystemPrompt is the primary instruction for the AI.
+const SystemPrompt = `You are an expert software engineer. Generate a concise conventional commit message for the given git diff.
+
+Pick the type by what the diff actually changes — do not default to feat:
+  feat     — new user-facing feature or capability
+  fix      — corrects a bug in existing behaviour
+  refactor — restructures code without changing behaviour
+  chore    — build scripts, deps, config, tooling (no production logic)
+  docs     — comments, README, or documentation only
+  test     — adds or updates tests only
+  style    — formatting or whitespace only
 
 Rules:
-- Use the conventional commits format: <type>: <description>
-- Types: feat, fix, docs, style, refactor, test, chore
-- Keep the subject line under 72 characters
-- Use the imperative mood ("add" not "added")
+- Format: <type>: <short description>
+- Subject line under 72 characters, imperative mood ("add" not "added")
 - Output only the commit message — no explanation, no markdown, no quotes`
 
-// BuildPrompt assembles the full prompt to send to an AI provider from a git diff.
+// BuildPrompt wraps the diff for the user turn of the prompt.
 func BuildPrompt(diff string) string {
-	return systemPrompt + "\n\n```diff\n" + diff + "\n```"
+	return "Git diff:\n\n```diff\n" + diff + "\n```"
 }
