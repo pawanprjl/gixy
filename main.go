@@ -20,6 +20,7 @@ func main() {
 				Commands: []*cli.Command{
 					&profile.AddCommand,
 					&profile.ListCommand,
+					&profile.DeleteCommand,
 				},
 			},
 		},

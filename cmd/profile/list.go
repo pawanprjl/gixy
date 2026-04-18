@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
 	"github.com/urfave/cli/v3"
 )
@@ -22,7 +23,7 @@ func listProfiles(_ context.Context, _ *cli.Command) error {
 	}
 
 	if len(cfg.Profiles) == 0 {
-		fmt.Println("\033[33mNo profiles found.\033[0m")
+		fmt.Println(colors.Yellow("No profiles found."))
 		return nil
 	}
 
@@ -34,7 +35,7 @@ func listProfiles(_ context.Context, _ *cli.Command) error {
 
 	for _, k := range keys {
 		p := cfg.Profiles[k]
-		fmt.Printf("%-20s %s <%s>\n", k, p.Name, p.Email)
+		fmt.Printf("%-20s %s <%s>\n", colors.Cyan(k), p.Name, p.Email)
 	}
 	return nil
 }

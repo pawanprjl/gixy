@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
 	"github.com/urfave/cli/v3"
 )
@@ -20,7 +21,7 @@ var AddCommand = cli.Command{
 
 func addProfile(_ context.Context, cmd *cli.Command) error {
 	if cmd.Args().Len() != 1 {
-		return cli.Exit("usage: gixy profile add <profile-name>", 1)
+		return cli.Exit(colors.Red("usage: gixy profile add <profile-name>"), 1)
 	}
 	profileName := cmd.Args().Get(0)
 
@@ -30,29 +31,29 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 	}
 
 	if _, exists := cfg.Profiles[profileName]; exists {
-		return cli.Exit(fmt.Sprintf("profile %q already exists", profileName), 1)
+		return cli.Exit(colors.Red(fmt.Sprintf("profile %q already exists", profileName)), 1)
 	}
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Print("Git name: ")
+	fmt.Print(colors.Cyan("Git name: "))
 	name, err := reader.ReadString('\n')
 	if err != nil {
 		return cli.Exit(fmt.Errorf("read name: %w", err), 1)
 	}
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return cli.Exit("name cannot be empty", 1)
+		return cli.Exit(colors.Red("name cannot be empty"), 1)
 	}
 
-	fmt.Print("Git email: ")
+	fmt.Print(colors.Cyan("Git email: "))
 	email, err := reader.ReadString('\n')
 	if err != nil {
 		return cli.Exit(fmt.Errorf("read email: %w", err), 1)
 	}
 	email = strings.TrimSpace(email)
 	if email == "" {
-		return cli.Exit("email cannot be empty", 1)
+		return cli.Exit(colors.Red("email cannot be empty"), 1)
 	}
 
 	cfg.Profiles[profileName] = config.Profile{Name: name, Email: email}
@@ -61,6 +62,6 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Errorf("save config: %w", err), 1)
 	}
 
-	fmt.Printf("Profile %q added.\n", profileName)
+	fmt.Println(colors.Green(fmt.Sprintf("Profile %q added.", profileName)))
 	return nil
 }
