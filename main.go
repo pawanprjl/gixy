@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pawanprjl/gixy/cmd/commit"
 	"github.com/pawanprjl/gixy/cmd/profile"
 	"github.com/urfave/cli/v3"
 )
@@ -22,6 +23,14 @@ func main() {
 					&profile.ListCommand,
 					&profile.DeleteCommand,
 					&profile.UseCommand,
+				},
+			},
+			{
+				Name:  "commit",
+				Usage: "AI-powered commit message generation",
+				Commands: []*cli.Command{
+					&commit.SetupCommand,
+					&commit.GenerateCommand,
 				},
 			},
 		},

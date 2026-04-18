@@ -13,8 +13,15 @@ type Profile struct {
 	Email string `json:"email"`
 }
 
+type CommitGenConfig struct {
+	Provider string `json:"provider"`
+	Model    string `json:"model"`
+	APIKey   string `json:"api_key"`
+}
+
 type Config struct {
-	Profiles map[string]Profile `json:"profiles"`
+	Profiles  map[string]Profile `json:"profiles"`
+	CommitGen *CommitGenConfig   `json:"commit_gen,omitempty"`
 }
 
 func configPath() (string, error) {
