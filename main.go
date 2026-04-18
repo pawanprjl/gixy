@@ -19,13 +19,14 @@ func main() {
 				Usage: "Manage git profiles",
 				Commands: []*cli.Command{
 					&profile.AddCommand,
+					&profile.ListCommand,
 				},
 			},
 		},
 	}
 
 	if err := app.Run(context.Background(), os.Args); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "\033[31merror:\033[0m %s\n", err)
 		os.Exit(1)
 	}
 }
