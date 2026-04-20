@@ -18,6 +18,11 @@ Rules:
 - Output only the commit message — no explanation, no markdown, no quotes`
 
 // BuildPrompt wraps the diff for the user turn of the prompt.
-func BuildPrompt(diff string) string {
-	return "Git diff:\n\n```diff\n" + diff + "\n```"
+// extraContext is optional free-text appended to guide the AI.
+func BuildPrompt(diff, extraContext string) string {
+	p := "Git diff:\n\n```diff\n" + diff + "\n```"
+	if extraContext != "" {
+		p += "\n\nAdditional context: " + extraContext
+	}
+	return p
 }

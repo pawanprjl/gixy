@@ -5,16 +5,23 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pawanprjl/gixy/cmd/branch"
 	"github.com/pawanprjl/gixy/cmd/commit"
 	commitconfig "github.com/pawanprjl/gixy/cmd/commit/config"
+	"github.com/pawanprjl/gixy/cmd/gixylog"
 	"github.com/pawanprjl/gixy/cmd/profile"
+	gixyprovider "github.com/pawanprjl/gixy/cmd/provider"
+	"github.com/pawanprjl/gixy/cmd/status"
 	"github.com/urfave/cli/v3"
 )
 
+const version = "0.1.0"
+
 func main() {
 	app := &cli.Command{
-		Name:  "gixy",
-		Usage: "A CLI companion for git",
+		Name:    "gixy",
+		Usage:   "A CLI companion for git",
+		Version: version,
 		Commands: []*cli.Command{
 			{
 				Name:  "profile",
@@ -24,6 +31,8 @@ func main() {
 					&profile.ListCommand,
 					&profile.DeleteCommand,
 					&profile.UseCommand,
+					&profile.ShowCommand,
+					&profile.EditCommand,
 				},
 			},
 			{
@@ -43,6 +52,18 @@ func main() {
 					&commit.GenerateCommand,
 				},
 			},
+			{
+				Name:  "provider",
+				Usage: "Set up an AI provider for commit generation",
+				Commands: []*cli.Command{
+					&gixyprovider.AddCommand,
+					&gixyprovider.ListCommand,
+					&gixyprovider.RemoveCommand,
+				},
+			},
+			&branch.BranchCommand,
+			&gixylog.LogCommand,
+			&status.StatusCommand,
 		},
 	}
 
