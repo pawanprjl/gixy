@@ -19,8 +19,14 @@ Rules:
 
 // BuildPrompt wraps the diff for the user turn of the prompt.
 // extraContext is optional free-text appended to guide the AI.
-func BuildPrompt(diff, extraContext string) string {
-	p := "Git diff:\n\n```diff\n" + diff + "\n```"
+// isStat indicates the content is a --stat summary rather than a full diff.
+func BuildPrompt(content, extraContext string, isStat bool) string {
+	var p string
+	if isStat {
+		p = "The staged diff was too large to send in full. Here is a summary of changed files:\n\n" + content
+	} else {
+		p = "Git diff:\n\n```diff\n" + content + "\n```"
+	}
 	if extraContext != "" {
 		p += "\n\nAdditional context: " + extraContext
 	}

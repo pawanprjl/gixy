@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pawanprjl/gixy/cmd/branch"
 	"github.com/pawanprjl/gixy/cmd/commit"
 	commitconfig "github.com/pawanprjl/gixy/cmd/commit/config"
-	"github.com/pawanprjl/gixy/cmd/gixylog"
 	"github.com/pawanprjl/gixy/cmd/profile"
 	gixyprovider "github.com/pawanprjl/gixy/cmd/provider"
-	"github.com/pawanprjl/gixy/cmd/status"
 	"github.com/urfave/cli/v3"
 )
 
@@ -61,9 +58,6 @@ func main() {
 					&gixyprovider.RemoveCommand,
 				},
 			},
-			&branch.BranchCommand,
-			&gixylog.LogCommand,
-			&status.StatusCommand,
 		},
 	}
 

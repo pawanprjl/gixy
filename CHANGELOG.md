@@ -32,11 +32,6 @@ All notable changes to gixy are documented here.
 - **`gixy profile show`** — shows the active git identity for the current repo; matches it against saved gixy profiles and highlights the profile name if found
 - **`gixy profile edit <name>`** — edit an existing profile's name and email interactively; press Enter on any field to keep the current value
 
-#### New top-level commands
-- **`gixy branch`** — interactive branch switcher; lists recent local branches sorted by last-commit date, marked with `*` for current; pick by number to switch or press Enter to cancel
-- **`gixy log`** — pretty color-coded git log; commit types (`feat`, `fix`, `docs`, etc.) are highlighted in distinct colors; `--count N` flag controls how many commits to show (default: 20)
-- **`gixy status`** — compact working tree summary: shows current branch, staged / unstaged / untracked file counts with color indicators, and the active git identity with matched gixy profile name
-
 #### General
 - **Version** — `gixy --version` / `gixy -v` now prints the version (`0.1.0`)
 

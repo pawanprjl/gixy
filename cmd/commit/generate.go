@@ -52,6 +52,10 @@ func runGenerate(ctx context.Context, extraContext string) error {
 		return cli.Exit(err, 1)
 	}
 
+	if diff.IsStat {
+		fmt.Println(colors.Yellow("Diff is large; sending file summary to AI instead of full diff."))
+	}
+
 	provider, err := commitgen.NewProvider(commitgen.ProviderConfig{
 		Provider: entry.Provider,
 		Model:    entry.Model,
