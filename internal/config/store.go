@@ -17,6 +17,7 @@ type CommitGenEntry struct {
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 	APIKey   string `json:"api_key"`
+	Host     string `json:"host,omitempty"` // used by ollama
 }
 
 type CommitGenConfig struct {

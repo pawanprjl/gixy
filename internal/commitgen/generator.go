@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pawanprjl/gixy/internal/commitgen/provider/anthropic"
 	"github.com/pawanprjl/gixy/internal/commitgen/provider/gemini"
+	"github.com/pawanprjl/gixy/internal/commitgen/provider/ollama"
+	"github.com/pawanprjl/gixy/internal/commitgen/provider/openai"
 )
 
 // Provider is the interface that all AI provider implementations must satisfy.
@@ -18,23 +21,30 @@ type ProviderConfig struct {
 	Provider string
 	Model    string
 	APIKey   string
+	Host     string // used by ollama
 }
 
 // NewProvider returns a Provider implementation for the given ProviderConfig.
-// Currently supports "gemini". Returns an error for unknown providers.
+// Currently supports "gemini", "openai", "ollama", and "anthropic".
 func NewProvider(cfg ProviderConfig) (Provider, error) {
 	switch cfg.Provider {
 	case "gemini":
 		return gemini.New(cfg.Model, cfg.APIKey, SystemPrompt)
+	case "openai":
+		return openai.New(cfg.Model, cfg.APIKey, SystemPrompt)
+	case "ollama":
+		return ollama.New(cfg.Model, cfg.Host, SystemPrompt)
+	case "anthropic":
+		return anthropic.New(cfg.Model, cfg.APIKey, SystemPrompt)
 	default:
-		return nil, fmt.Errorf("unsupported provider %q; supported: gemini", cfg.Provider)
+		return nil, fmt.Errorf("unsupported provider %q; supported: gemini, openai, ollama, anthropic", cfg.Provider)
 	}
 }
 
 // GenerateCommitMessage builds the prompt from the staged diff and calls the provider.
-// This is the single entry point for commit message generation.
-func GenerateCommitMessage(ctx context.Context, diff string, p Provider) (string, error) {
-	prompt := BuildPrompt(diff)
+// extraContext is optional free-text to guide the AI (can be empty).
+func GenerateCommitMessage(ctx context.Context, diff DiffResult, extraContext string, p Provider) (string, error) {
+	prompt := BuildPrompt(diff.Content, extraContext, diff.IsStat)
 	msg, err := p.Generate(ctx, prompt)
 	if err != nil {
 		return "", fmt.Errorf("generate commit message: %w", err)

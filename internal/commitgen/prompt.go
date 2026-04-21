@@ -18,6 +18,17 @@ Rules:
 - Output only the commit message — no explanation, no markdown, no quotes`
 
 // BuildPrompt wraps the diff for the user turn of the prompt.
-func BuildPrompt(diff string) string {
-	return "Git diff:\n\n```diff\n" + diff + "\n```"
+// extraContext is optional free-text appended to guide the AI.
+// isStat indicates the content is a --stat summary rather than a full diff.
+func BuildPrompt(content, extraContext string, isStat bool) string {
+	var p string
+	if isStat {
+		p = "The staged diff was too large to send in full. Here is a summary of changed files:\n\n" + content
+	} else {
+		p = "Git diff:\n\n```diff\n" + content + "\n```"
+	}
+	if extraContext != "" {
+		p += "\n\nAdditional context: " + extraContext
+	}
+	return p
 }

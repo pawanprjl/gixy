@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var supportedProviders = []string{"gemini"}
+var supportedProviders = []string{"gemini", "openai", "anthropic", "ollama"}
 
 var AddCommand = cli.Command{
 	Name:      "add",
