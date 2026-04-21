@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const version = "0.1.0"
+const version = "1.1.0"
 
 func main() {
 	app := &cli.Command{
