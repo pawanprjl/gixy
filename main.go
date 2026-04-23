@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/pawanprjl/gixy/cmd/commit"
-	commitconfig "github.com/pawanprjl/gixy/cmd/commit/config"
 	"github.com/pawanprjl/gixy/cmd/profile"
 	gixyprovider "github.com/pawanprjl/gixy/cmd/provider"
 	"github.com/urfave/cli/v3"
@@ -36,25 +35,16 @@ func main() {
 				Name:  "commit",
 				Usage: "AI-powered commit message generation",
 				Commands: []*cli.Command{
-					{
-						Name:  "config",
-						Usage: "Manage commit generation providers",
-						Commands: []*cli.Command{
-							&commitconfig.AddCommand,
-							&commitconfig.UseCommand,
-							&commitconfig.ListCommand,
-							&commitconfig.RemoveCommand,
-						},
-					},
 					&commit.GenerateCommand,
 				},
 			},
 			{
 				Name:  "provider",
-				Usage: "Set up an AI provider for commit generation",
+				Usage: "Manage AI providers",
 				Commands: []*cli.Command{
 					&gixyprovider.AddCommand,
 					&gixyprovider.ListCommand,
+					&gixyprovider.UseCommand,
 					&gixyprovider.RemoveCommand,
 				},
 			},

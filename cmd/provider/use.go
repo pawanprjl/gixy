@@ -1,4 +1,4 @@
-package commitconfig
+package provider
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 
 var UseCommand = cli.Command{
 	Name:      "use",
-	Usage:     "Set the active commit generation provider",
+	Usage:     "Set the active AI provider",
 	ArgsUsage: "<name>",
 	Action: func(_ context.Context, cmd *cli.Command) error {
 		if cmd.Args().Len() != 1 {
-			return cli.Exit(colors.Red("usage: gixy commit config use <name>"), 1)
+			return cli.Exit(colors.Red("usage: gixy provider use <name>"), 1)
 		}
 		name := cmd.Args().Get(0)
 

@@ -43,12 +43,12 @@ func runGenerate(ctx context.Context, extraContext, issueLink string) error {
 		return cli.Exit(fmt.Errorf("load config: %w", err), 1)
 	}
 	if cfg.CommitGen == nil || cfg.CommitGen.Active == "" {
-		return cli.Exit(colors.Red("commit generation is not configured; run `gixy commit config add` first"), 1)
+		return cli.Exit(colors.Red("commit generation is not configured; run `gixy provider add` to add one"), 1)
 	}
 
 	entry, exists := cfg.CommitGen.Providers[cfg.CommitGen.Active]
 	if !exists {
-		return cli.Exit(colors.Red(fmt.Sprintf("active provider %q not found; run `gixy commit config use` to set a valid provider", cfg.CommitGen.Active)), 1)
+		return cli.Exit(colors.Red(fmt.Sprintf("active provider %q not found; run `gixy provider use <name>` to set a valid provider", cfg.CommitGen.Active)), 1)
 	}
 
 	diff, err := commitgen.GetStagedDiff(ctx)
