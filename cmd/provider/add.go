@@ -12,6 +12,21 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+type providerDef struct {
+	name         string
+	label        string
+	defaultModel string
+	needsAPIKey  bool
+	defaultHost  string
+}
+
+var providerDefs = []providerDef{
+	{name: "gemini", label: "Gemini", defaultModel: "gemini-2.0-flash", needsAPIKey: true},
+	{name: "openai", label: "OpenAI", defaultModel: "gpt-4o", needsAPIKey: true},
+	{name: "anthropic", label: "Anthropic", defaultModel: "claude-3-5-sonnet-20241022", needsAPIKey: true},
+	{name: "ollama", label: "Ollama", defaultModel: "llama3.2", defaultHost: "http://localhost:11434"},
+}
+
 var AddCommand = cli.Command{
 	Name:  "add",
 	Usage: "Interactively add an AI provider for commit generation",
@@ -23,33 +38,32 @@ var AddCommand = cli.Command{
 func runAdd() error {
 	reader := bufio.NewReader(os.Stdin)
 
+	names := make([]string, len(providerDefs))
+	for i, p := range providerDefs {
+		names[i] = p.name
+	}
+
 	fmt.Println()
-	fmt.Println("Select a provider:")
-	fmt.Println("  1) Gemini")
-	fmt.Println("  2) OpenAI")
-	fmt.Println("  3) Anthropic")
-	fmt.Println("  4) Ollama")
+	fmt.Printf("Available providers: %s\n", strings.Join(names, ", "))
 	fmt.Println()
 
-	choiceStr, err := prompt(reader, "Choice", "1")
+	providerName, err := prompt(reader, "Provider", providerDefs[0].name)
 	if err != nil {
 		return err
 	}
 
-	var entry config.CommitGenEntry
-
-	switch choiceStr {
-	case "1", "":
-		entry, err = setupGemini(reader)
-	case "2":
-		entry, err = setupOpenAI(reader)
-	case "3":
-		entry, err = setupAnthropic(reader)
-	case "4":
-		entry, err = setupOllama(reader)
-	default:
-		return cli.Exit(colors.Red(fmt.Sprintf("invalid choice %q; enter 1, 2, 3, or 4", choiceStr)), 1)
+	var def *providerDef
+	for i := range providerDefs {
+		if providerDefs[i].name == providerName {
+			def = &providerDefs[i]
+			break
+		}
 	}
+	if def == nil {
+		return cli.Exit(colors.Red(fmt.Sprintf("invalid provider %q; available: %s", providerName, strings.Join(names, ", "))), 1)
+	}
+
+	entry, err := setupProvider(reader, def)
 	if err != nil {
 		return err
 	}
@@ -94,64 +108,35 @@ func runAdd() error {
 	return nil
 }
 
-func setupGemini(r *bufio.Reader) (config.CommitGenEntry, error) {
-	model, err := prompt(r, "Model", "gemini-2.0-flash")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	apiKey, err := prompt(r, "API key", "")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	if apiKey == "" {
-		return config.CommitGenEntry{}, cli.Exit(colors.Red("API key cannot be empty"), 1)
-	}
-	return config.CommitGenEntry{Provider: "gemini", Model: model, APIKey: apiKey}, nil
-}
-
-func setupOpenAI(r *bufio.Reader) (config.CommitGenEntry, error) {
-	model, err := prompt(r, "Model", "gpt-4o")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	apiKey, err := prompt(r, "API key", "")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	if apiKey == "" {
-		return config.CommitGenEntry{}, cli.Exit(colors.Red("API key cannot be empty"), 1)
-	}
-	return config.CommitGenEntry{Provider: "openai", Model: model, APIKey: apiKey}, nil
-}
-
-func setupAnthropic(r *bufio.Reader) (config.CommitGenEntry, error) {
-	model, err := prompt(r, "Model", "claude-3-5-sonnet-20241022")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	apiKey, err := prompt(r, "API key", "")
-	if err != nil {
-		return config.CommitGenEntry{}, err
-	}
-	if apiKey == "" {
-		return config.CommitGenEntry{}, cli.Exit(colors.Red("API key cannot be empty"), 1)
-	}
-	return config.CommitGenEntry{Provider: "anthropic", Model: model, APIKey: apiKey}, nil
-}
-
-func setupOllama(r *bufio.Reader) (config.CommitGenEntry, error) {
-	model, err := prompt(r, "Model", "llama3.2")
+func setupProvider(r *bufio.Reader, def *providerDef) (config.CommitGenEntry, error) {
+	model, err := prompt(r, "Model", def.defaultModel)
 	if err != nil {
 		return config.CommitGenEntry{}, err
 	}
 	if model == "" {
 		return config.CommitGenEntry{}, cli.Exit(colors.Red("model cannot be empty"), 1)
 	}
-	host, err := prompt(r, "Host", "http://localhost:11434")
-	if err != nil {
-		return config.CommitGenEntry{}, err
+
+	entry := config.CommitGenEntry{Provider: def.name, Model: model}
+
+	if def.needsAPIKey {
+		apiKey, err := prompt(r, "API key", "")
+		if err != nil {
+			return config.CommitGenEntry{}, err
+		}
+		if apiKey == "" {
+			return config.CommitGenEntry{}, cli.Exit(colors.Red("API key cannot be empty"), 1)
+		}
+		entry.APIKey = apiKey
+	} else {
+		host, err := prompt(r, "Host", def.defaultHost)
+		if err != nil {
+			return config.CommitGenEntry{}, err
+		}
+		entry.Host = host
 	}
-	return config.CommitGenEntry{Provider: "ollama", Model: model, Host: host}, nil
+
+	return entry, nil
 }
 
 // prompt prints "<label> [<default>]: " and reads a line.
