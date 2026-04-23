@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const version = "1.1.0"
+const version = "1.1.1"
 
 func main() {
 	app := &cli.Command{
@@ -27,7 +27,6 @@ func main() {
 					&profile.ListCommand,
 					&profile.DeleteCommand,
 					&profile.UseCommand,
-					&profile.ShowCommand,
 					&profile.EditCommand,
 				},
 			},

@@ -7,6 +7,7 @@ import (
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
+	"github.com/pawanprjl/gixy/internal/gitutil"
 	"github.com/urfave/cli/v3"
 )
 
@@ -22,6 +23,10 @@ func useProfile(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(colors.Red("usage: gixy profile use <profile-name>"), 1)
 	}
 	profileName := cmd.Args().Get(0)
+
+	if err := gitutil.EnsureGitRepo(); err != nil {
+		return cli.Exit(colors.Red(err.Error()), 1)
+	}
 
 	cfg, err := config.LoadConfig()
 	if err != nil {

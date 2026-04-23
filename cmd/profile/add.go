@@ -55,6 +55,9 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 	if email == "" {
 		return cli.Exit(colors.Red("email cannot be empty"), 1)
 	}
+	if !validEmail(email) {
+		return cli.Exit(colors.Red("invalid email address"), 1)
+	}
 
 	cfg.Profiles[profileName] = config.Profile{Name: name, Email: email}
 
@@ -64,4 +67,13 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 
 	fmt.Println(colors.Green(fmt.Sprintf("Profile %q added.", profileName)))
 	return nil
+}
+
+func validEmail(email string) bool {
+	at := strings.Index(email, "@")
+	if at < 1 {
+		return false
+	}
+	dot := strings.LastIndex(email[at:], ".")
+	return dot > 1 && at+dot < len(email)-1
 }
