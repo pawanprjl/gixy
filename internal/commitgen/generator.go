@@ -8,6 +8,7 @@ import (
 	"github.com/pawanprjl/gixy/internal/commitgen/provider/gemini"
 	"github.com/pawanprjl/gixy/internal/commitgen/provider/ollama"
 	"github.com/pawanprjl/gixy/internal/commitgen/provider/openai"
+	"github.com/pawanprjl/gixy/internal/config"
 )
 
 // Provider is the interface that all AI provider implementations must satisfy.
@@ -39,6 +40,17 @@ func NewProvider(cfg ProviderConfig) (Provider, error) {
 	default:
 		return nil, fmt.Errorf("unsupported provider %q; supported: gemini, openai, ollama, anthropic", cfg.Provider)
 	}
+}
+
+// NewProviderFromEntry constructs a Provider directly from a config.CommitGenEntry,
+// avoiding the need for callers to manually map fields into ProviderConfig.
+func NewProviderFromEntry(entry config.CommitGenEntry) (Provider, error) {
+	return NewProvider(ProviderConfig{
+		Provider: entry.Provider,
+		Model:    entry.Model,
+		APIKey:   entry.APIKey,
+		Host:     entry.Host,
+	})
 }
 
 // GenerateCommitMessage builds the prompt from the staged diff and calls the provider.
