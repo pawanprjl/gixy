@@ -43,7 +43,7 @@ return cli.Exit(fmt.Errorf("save config: %w", err), 1)
 
 fmt.Println(colors.Green(fmt.Sprintf("Provider %q removed.", name)))
 if cfg.CommitGen.Active == "" && len(cfg.CommitGen.Providers) > 0 {
-fmt.Println(colors.Yellow("No active provider set. Run `gixy provider list` to select one."))
+fmt.Println(colors.Yellow("No active provider set. Run `gixy provider use <name>` to set one."))
 }
 return nil
 },
