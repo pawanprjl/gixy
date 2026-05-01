@@ -28,6 +28,7 @@ func main() {
 					&profile.DeleteCommand,
 					&profile.UseCommand,
 					&profile.EditCommand,
+					&profile.KeysCommand,
 				},
 			},
 			{

@@ -4,6 +4,7 @@ go 1.26.2
 
 require (
 	github.com/urfave/cli/v3 v3.8.0
+	golang.org/x/crypto v0.36.0
 	google.golang.org/genai v1.54.0
 )
 
@@ -17,7 +18,6 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.4 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
