@@ -9,6 +9,7 @@ import (
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
+	"github.com/pawanprjl/gixy/internal/sshutil"
 	"github.com/urfave/cli/v3"
 )
 
@@ -65,7 +66,24 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(fmt.Errorf("save config: %w", err), 1)
 	}
 
+	fmt.Printf("Generating SSH keypair for profile %q...\n", profileName)
+	if err := sshutil.GenerateKeypair(profileName, email); err != nil {
+		return cli.Exit(fmt.Errorf("generate SSH keypair: %w", err), 1)
+	}
+
+	keyDir, err := sshutil.KeyDir(profileName)
+	if err != nil {
+		return cli.Exit(fmt.Errorf("resolve key dir: %w", err), 1)
+	}
+	pubKeyPath := keyDir + "/id_ed25519.pub"
+	pubKeyBytes, err := os.ReadFile(pubKeyPath)
+	if err != nil {
+		return cli.Exit(fmt.Errorf("read public key: %w", err), 1)
+	}
+
 	fmt.Println(colors.Green(fmt.Sprintf("Profile %q added.", profileName)))
+	fmt.Printf("\n%s\n", colors.Cyan("Public key (add this to GitHub / GitLab):"))
+	fmt.Print(string(pubKeyBytes))
 	return nil
 }
 

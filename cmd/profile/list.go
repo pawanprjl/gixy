@@ -19,11 +19,11 @@ var ListCommand = cli.Command{
 }
 
 func activeGitIdentity() (name, email string) {
-	nameOut, err := exec.Command("git", "config", "--local", "user.name").Output()
+	nameOut, err := exec.Command("git", "config", "--global", "user.name").Output()
 	if err != nil {
 		return "", ""
 	}
-	emailOut, err := exec.Command("git", "config", "--local", "user.email").Output()
+	emailOut, err := exec.Command("git", "config", "--global", "user.email").Output()
 	if err != nil {
 		return "", ""
 	}

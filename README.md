@@ -8,11 +8,12 @@ A CLI companion for git that adds workflow enhancements on top of your existing 
 
 ## Features
 
-- **Profile management** — define named author profiles (name + email), switch and edit them per-repo in one command
+- **Profile management** — define named author profiles (name + email), switch them globally in one command
+- **SSH key management** — each profile gets its own ed25519 keypair; `profile use` symlinks the active keys to `~/.ssh/id_ed25519`
 - **AI commit messages** — generate conventional commit messages from staged changes using an AI provider of your choice
 - **Multiple AI providers** — supports Gemini, OpenAI, Anthropic, and Ollama (local)
 - **Interactive commit flow** — accept, edit in `$EDITOR`, or regenerate a suggestion before committing
-- **XDG-compliant config** — config stored in `~/.config/gixy/config` (respects `$XDG_CONFIG_HOME`)
+- **Config stored at** `~/.config/gixy/config`
 - **Extensible** — designed to grow with more git-enhancing commands over time
 
 ---
@@ -32,15 +33,18 @@ Requires Go 1.21+. Make sure `$GOPATH/bin` (or `$GOBIN`) is in your `PATH`.
 ### Profile management
 
 ```sh
-# Add a new profile (prompts for name and email)
+# Add a new profile (prompts for name and email, then generates an SSH keypair)
 gixy profile add <name>
 
-# List all saved profiles (* marks the active profile for the current repo)
+# List all saved profiles (* marks the active profile)
 gixy profile list
 
-# Apply a profile to the current repository
-# Writes user.name and user.email to the repo's local .git/config
+# Activate a profile globally: sets git user.name/email in ~/.gitconfig
+# and symlinks ~/.ssh/id_ed25519{,.pub} to the profile's keypair
 gixy profile use <name>
+
+# Show SSH key paths, fingerprint, and public key for a profile
+gixy profile keys <name>
 
 # Edit an existing profile (empty input keeps the current value)
 gixy profile edit <name>
@@ -123,10 +127,8 @@ gixy provider remove <name>
 All gixy data is stored in a single JSON file:
 
 ```
-$XDG_CONFIG_HOME/gixy/config
+~/.config/gixy/config
 ```
-
-Which defaults to `~/.config/gixy/config` when `$XDG_CONFIG_HOME` is not set.
 
 Example config:
 
@@ -162,12 +164,12 @@ Example config:
 
 > **Note:** API keys are stored in plaintext in this file. gixy sets file permissions to `0600` on write.
 
+SSH keypairs are stored separately under `~/.ssh/gixy/<profile-name>/id_ed25519{,.pub}`.
+
 ---
 
 ## Roadmap
 
-- [ ] SSH key path per profile
-- [ ] GPG signing key per profile
 - [ ] Shell completions
 
 ---

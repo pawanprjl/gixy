@@ -9,6 +9,7 @@ import (
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
+	"github.com/pawanprjl/gixy/internal/sshutil"
 	"github.com/urfave/cli/v3"
 )
 
@@ -54,5 +55,24 @@ func deleteProfile(_ context.Context, cmd *cli.Command) error {
 	}
 
 	fmt.Println(colors.Green(fmt.Sprintf("Profile %q deleted.", profileName)))
+
+	// Offer to clean up SSH keys
+	keyDir, err := sshutil.KeyDir(profileName)
+	if err == nil {
+		if _, statErr := os.Stat(keyDir); statErr == nil {
+			fmt.Printf("Also delete SSH keys at %s? [y/N]: ", colors.Cyan(keyDir))
+			keyAnswer, _ := reader.ReadString('\n')
+			keyAnswer = strings.TrimSpace(strings.ToLower(keyAnswer))
+			if keyAnswer == "y" || keyAnswer == "yes" {
+				if err := os.RemoveAll(keyDir); err != nil {
+					return cli.Exit(fmt.Errorf("remove SSH keys: %w", err), 1)
+				}
+				fmt.Println(colors.Green("SSH keys deleted."))
+			} else {
+				fmt.Printf("SSH keys kept at %s\n", keyDir)
+			}
+		}
+	}
+
 	return nil
 }
