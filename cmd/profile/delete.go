@@ -50,11 +50,33 @@ func deleteProfile(_ context.Context, cmd *cli.Command) error {
 
 	delete(cfg.Profiles, profileName)
 
+	// Remove any path mappings pointing to this profile.
+	removedMappings := 0
+	for path, pName := range cfg.PathMappings {
+		if pName == profileName {
+			delete(cfg.PathMappings, path)
+			removedMappings++
+		}
+	}
+
+	// Clear default profile if it pointed to the deleted profile.
+	clearedDefault := false
+	if cfg.DefaultProfile == profileName {
+		cfg.DefaultProfile = ""
+		clearedDefault = true
+	}
+
 	if err := config.SaveConfig(cfg); err != nil {
 		return cli.Exit(fmt.Errorf("save config: %w", err), 1)
 	}
 
 	fmt.Println(colors.Green(fmt.Sprintf("Profile %q deleted.", profileName)))
+	if removedMappings > 0 {
+		fmt.Printf(colors.Yellow("  Removed %d path mapping(s) pointing to this profile.\n"), removedMappings)
+	}
+	if clearedDefault {
+		fmt.Println(colors.Yellow("  Default profile was cleared (it pointed to this profile)."))
+	}
 
 	// Offer to clean up SSH keys
 	keyDir, err := sshutil.KeyDir(profileName)

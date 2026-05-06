@@ -26,8 +26,10 @@ type CommitGenConfig struct {
 }
 
 type Config struct {
-	Profiles  map[string]Profile `json:"profiles"`
-	CommitGen *CommitGenConfig   `json:"commit_gen,omitempty"`
+	Profiles       map[string]Profile `json:"profiles"`
+	PathMappings   map[string]string  `json:"path_mappings,omitempty"`
+	DefaultProfile string             `json:"default_profile,omitempty"`
+	CommitGen      *CommitGenConfig   `json:"commit_gen,omitempty"`
 }
 
 func configPath() (string, error) {
@@ -58,6 +60,9 @@ func LoadConfig() (*Config, error) {
 	}
 	if cfg.Profiles == nil {
 		cfg.Profiles = make(map[string]Profile)
+	}
+	if cfg.PathMappings == nil {
+		cfg.PathMappings = make(map[string]string)
 	}
 	if cfg.CommitGen != nil && cfg.CommitGen.Providers == nil {
 		cfg.CommitGen.Providers = make(map[string]CommitGenEntry)
