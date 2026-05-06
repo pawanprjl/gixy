@@ -9,6 +9,7 @@ A CLI companion for git that adds workflow enhancements on top of your existing 
 ## Features
 
 - **Profile management** — define named author profiles (name + email), switch them globally in one command
+- **Auto-activation** — map folder paths to profiles; the correct profile activates automatically when you `cd` into a mapped directory
 - **SSH key management** — each profile gets its own ed25519 keypair; `profile use` symlinks the active keys to `~/.ssh/id_ed25519`
 - **AI commit messages** — generate conventional commit messages from staged changes using an AI provider of your choice
 - **Multiple AI providers** — supports Gemini, OpenAI, Anthropic, and Ollama (local)
@@ -52,6 +53,41 @@ gixy profile edit <name>
 # Delete a profile
 gixy profile delete <name>
 ```
+
+### Auto-activation (pyenv-style)
+
+Map folder paths to profiles so the right identity activates automatically when you `cd` into a directory.
+
+**1. Set up shell integration (one-time)**
+
+Add this to your `~/.zshrc`, `~/.bashrc`, or `~/.config/fish/config.fish`:
+
+```sh
+eval "$(gixy init)"
+```
+
+gixy auto-detects your shell. To specify explicitly: `gixy init --shell zsh|bash|fish`.
+
+**2. Map folders to profiles**
+
+```sh
+# Map a directory (and all its subdirectories) to a profile
+gixy profile map work ~/projects/work
+gixy profile map personal ~/projects/personal
+
+# Set a fallback profile for unmapped directories
+gixy profile default personal
+
+# List all mappings
+gixy profile maps
+
+# Remove a mapping
+gixy profile unmap ~/projects/work
+```
+
+When you `cd` into `~/projects/work/some-repo`, gixy automatically runs `profile use work` in the background — switching your global git identity and SSH keys. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`.
+
+If no mapping matches and no default is set, gixy does nothing.
 
 ### Commit message generation
 
@@ -144,6 +180,11 @@ Example config:
       "email": "jane.doe@company.com"
     }
   },
+  "path_mappings": {
+    "/home/jane/projects/work": "work",
+    "/home/jane/projects/personal": "personal"
+  },
+  "default_profile": "personal",
   "commit_gen": {
     "active": "personal-gemini",
     "providers": {
@@ -171,6 +212,7 @@ SSH keypairs are stored separately under `~/.ssh/gixy/<profile-name>/id_ed25519{
 ## Roadmap
 
 - [ ] Shell completions
+- [ ] `gixy profile status` — show currently active profile and which mapping triggered it
 
 ---
 

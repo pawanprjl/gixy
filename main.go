@@ -6,12 +6,13 @@ import (
 	"os"
 
 	"github.com/pawanprjl/gixy/cmd/commit"
+	initcmd "github.com/pawanprjl/gixy/cmd/init"
 	"github.com/pawanprjl/gixy/cmd/profile"
 	gixyprovider "github.com/pawanprjl/gixy/cmd/provider"
 	"github.com/urfave/cli/v3"
 )
 
-const version = "1.2.0"
+const version = "1.3.0"
 
 func main() {
 	app := &cli.Command{
@@ -29,6 +30,11 @@ func main() {
 					&profile.UseCommand,
 					&profile.EditCommand,
 					&profile.KeysCommand,
+					&profile.MapCommand,
+					&profile.UnmapCommand,
+					&profile.MapsCommand,
+					&profile.DefaultCommand,
+					&profile.ActivateCommand,
 				},
 			},
 			{
@@ -48,6 +54,7 @@ func main() {
 					&gixyprovider.RemoveCommand,
 				},
 			},
+			&initcmd.InitCommand,
 		},
 	}
 
