@@ -25,7 +25,7 @@ A CLI companion for git that adds workflow enhancements on top of your existing 
 go install github.com/pawanprjl/gixy@latest
 ```
 
-Requires Go 1.21+. Make sure `$GOPATH/bin` (or `$GOBIN`) is in your `PATH`.
+Requires Go 1.26.2+. Make sure `$GOPATH/bin` (or `$GOBIN`) is in your `PATH`.
 
 ---
 
@@ -72,17 +72,20 @@ gixy auto-detects your shell. To specify explicitly: `gixy init --shell zsh|bash
 
 ```sh
 # Map a directory (and all its subdirectories) to a profile
-gixy profile map work ~/projects/work
-gixy profile map personal ~/projects/personal
+gixy profile map add work ~/projects/work
+gixy profile map add personal ~/projects/personal
+
+# List all mappings
+gixy profile map list
+
+# Remove a mapping
+gixy profile map remove ~/projects/work
 
 # Set a fallback profile for unmapped directories
 gixy profile default personal
 
-# List all mappings
-gixy profile maps
-
-# Remove a mapping
-gixy profile unmap ~/projects/work
+# Clear the fallback profile
+gixy profile default --clear
 ```
 
 When you `cd` into `~/projects/work/some-repo`, gixy automatically runs `profile use work` in the background — switching your global git identity and SSH keys. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`.
