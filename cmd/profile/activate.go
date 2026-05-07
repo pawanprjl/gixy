@@ -12,8 +12,9 @@ import (
 )
 
 var ActivateCommand = cli.Command{
-	Name:  "activate",
-	Usage: "Auto-activate the profile for the current directory (used by shell hooks)",
+	Name:   "activate",
+	Hidden: true,
+	Usage:  "Auto-activate the profile for the current directory (used by shell hooks)",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "silent",

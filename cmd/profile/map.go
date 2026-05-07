@@ -4,29 +4,40 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"sort"
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
 	"github.com/urfave/cli/v3"
 )
 
-var MapCommand = cli.Command{
-	Name:      "map",
-	Usage:     "Map a folder path to a profile for auto-activation",
-	ArgsUsage: "<profile-name> <path>",
-	Action:    mapProfile,
+var MapGroupCommand = cli.Command{
+	Name:  "map",
+	Usage: "Manage folder path mappings for auto-activation",
+	Commands: []*cli.Command{
+		{
+			Name:      "add",
+			Usage:     "Map a folder path to a profile",
+			ArgsUsage: "<profile-name> <path>",
+			Action:    mapAdd,
+		},
+		{
+			Name:      "remove",
+			Usage:     "Remove a folder path mapping",
+			ArgsUsage: "<path>",
+			Action:    mapRemove,
+		},
+		{
+			Name:   "list",
+			Usage:  "List all folder path mappings",
+			Action: mapList,
+		},
+	},
 }
 
-var UnmapCommand = cli.Command{
-	Name:      "unmap",
-	Usage:     "Remove a folder path mapping",
-	ArgsUsage: "<path>",
-	Action:    unmapProfile,
-}
-
-func mapProfile(_ context.Context, cmd *cli.Command) error {
+func mapAdd(_ context.Context, cmd *cli.Command) error {
 	if cmd.Args().Len() != 2 {
-		return cli.Exit(colors.Red("usage: gixy profile map <profile-name> <path>"), 1)
+		return cli.Exit(colors.Red("usage: gixy profile map add <profile-name> <path>"), 1)
 	}
 	profileName := cmd.Args().Get(0)
 	rawPath := cmd.Args().Get(1)
@@ -55,9 +66,9 @@ func mapProfile(_ context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func unmapProfile(_ context.Context, cmd *cli.Command) error {
+func mapRemove(_ context.Context, cmd *cli.Command) error {
 	if cmd.Args().Len() != 1 {
-		return cli.Exit(colors.Red("usage: gixy profile unmap <path>"), 1)
+		return cli.Exit(colors.Red("usage: gixy profile map remove <path>"), 1)
 	}
 	rawPath := cmd.Args().Get(0)
 
@@ -82,5 +93,34 @@ func unmapProfile(_ context.Context, cmd *cli.Command) error {
 	}
 
 	fmt.Println(colors.Green(fmt.Sprintf("Removed mapping for %s", absPath)))
+	return nil
+}
+
+func mapList(_ context.Context, _ *cli.Command) error {
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return cli.Exit(fmt.Errorf("load config: %w", err), 1)
+	}
+
+	if cfg.DefaultProfile != "" {
+		fmt.Printf("default: %s\n\n", colors.Cyan(cfg.DefaultProfile))
+	}
+
+	if len(cfg.PathMappings) == 0 {
+		fmt.Println(colors.Yellow("No path mappings configured."))
+		fmt.Println(colors.Yellow("Use: gixy profile map add <profile-name> <path>"))
+		return nil
+	}
+
+	paths := make([]string, 0, len(cfg.PathMappings))
+	for p := range cfg.PathMappings {
+		paths = append(paths, p)
+	}
+	sort.Strings(paths)
+
+	for _, p := range paths {
+		profileName := cfg.PathMappings[p]
+		fmt.Printf("  %-50s → %s\n", p, colors.Cyan(profileName))
+	}
 	return nil
 }
