@@ -11,8 +11,9 @@ import (
 )
 
 var InitCommand = cli.Command{
-	Name:  "init",
-	Usage: "Print shell integration hook for auto-activating profiles on cd",
+	Name:      "init",
+	Usage:     "Print shell integration hook for auto-activating profiles on cd",
+	ArgsUsage: "[-]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:  "shell",
@@ -24,20 +25,60 @@ var InitCommand = cli.Command{
 
 func printInit(_ context.Context, cmd *cli.Command) error {
 	shell := cmd.String("shell")
+	rawMode := cmd.Args().First() == "-"
+
+	// Auto-detect shell if not explicitly provided
 	if shell == "" {
 		shell = detectShell()
 	}
 
+	// Raw hook output: `gixy init -` or `gixy init --shell <shell>`
+	if rawMode || cmd.IsSet("shell") {
+		switch shell {
+		case "zsh":
+			fmt.Print(zshHook)
+		case "bash":
+			fmt.Print(bashHook)
+		case "fish":
+			fmt.Print(fishHook)
+		default:
+			return cli.Exit(colors.Red(fmt.Sprintf("unsupported shell %q — supported: zsh, bash, fish", shell)), 1)
+		}
+		return nil
+	}
+
+	// No args: show human-friendly setup instructions
+	return printSetupInstructions(shell)
+}
+
+func printSetupInstructions(shell string) error {
+	var configFile string
+
 	switch shell {
 	case "zsh":
-		fmt.Print(zshHook)
+		configFile = "~/.zshrc"
 	case "bash":
-		fmt.Print(bashHook)
+		configFile = "~/.bashrc"
 	case "fish":
-		fmt.Print(fishHook)
+		configFile = "~/.config/fish/config.fish"
 	default:
-		return cli.Exit(colors.Red(fmt.Sprintf("unsupported shell %q — supported: zsh, bash, fish", shell)), 1)
+		fmt.Println("To enable gixy shell integration, add the following to your shell config:")
+		fmt.Println()
+		fmt.Println("  " + colors.Bold(`eval "$(gixy init -)"`) + "   " + colors.Dim("# zsh / bash"))
+		fmt.Println("  " + colors.Bold(`gixy init - | source`) + "    " + colors.Dim("# fish"))
+		return nil
 	}
+
+	evalLine := `eval "$(gixy init -)"`
+	if shell == "fish" {
+		evalLine = `gixy init - | source`
+	}
+
+	fmt.Printf("To enable gixy shell integration, add the following to %s:\n", colors.Bold(configFile))
+	fmt.Println()
+	fmt.Printf("  %s\n", colors.Bold(evalLine))
+	fmt.Println()
+	fmt.Printf("Then restart your shell or run: %s\n", colors.Bold("source "+configFile))
 	return nil
 }
 
