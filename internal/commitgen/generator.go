@@ -56,7 +56,7 @@ func NewProviderFromEntry(entry config.CommitGenEntry) (Provider, error) {
 // GenerateCommitMessage builds the prompt from the staged diff and calls the provider.
 // extraContext is optional free-text to guide the AI (can be empty).
 func GenerateCommitMessage(ctx context.Context, diff DiffResult, extraContext string, p Provider) (string, error) {
-	prompt := BuildPrompt(diff.Content, extraContext, diff.IsStat)
+	prompt := BuildPrompt(diff, extraContext)
 	msg, err := p.Generate(ctx, prompt)
 	if err != nil {
 		return "", fmt.Errorf("generate commit message: %w", err)

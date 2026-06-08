@@ -56,8 +56,8 @@ func runGenerate(ctx context.Context, extraContext, issueLink string) error {
 		return cli.Exit(err, 1)
 	}
 
-	if diff.IsStat {
-		fmt.Println(colors.Yellow("Diff is large; sending file summary to AI instead of full diff."))
+	if diff.Truncated {
+		fmt.Println(colors.Yellow("Diff is large; sending truncated diff with file summary to AI."))
 	}
 
 	provider, err := commitgen.NewProviderFromEntry(entry)
