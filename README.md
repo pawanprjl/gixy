@@ -9,8 +9,8 @@ A git identity & SSH profile manager — switch author identity and SSH keys per
 ## Features
 
 - **Profile management** — define named author profiles (name + email), switch them globally in one command
-- **Auto-activation** — map folder paths to profiles; the correct profile activates automatically when you `cd` into a mapped directory
-- **SSH key management** — each profile gets its own ed25519 keypair; `profile use` symlinks the active keys to `~/.ssh/id_ed25519`
+- **Auto-activation** — map folder paths to profiles; the correct profile is applied automatically for every `git` command, based on the directory you run it in
+- **SSH key management** — each profile gets its own ed25519 keypair; `profile global` symlinks the baseline keys to `~/.ssh/id_ed25519`
 - **Config stored at** `~/.config/gixy/config`
 - **Extensible** — designed to grow with more git-enhancing commands over time
 
@@ -34,12 +34,19 @@ Requires Go 1.26.2+. Make sure `$GOPATH/bin` (or `$GOBIN`) is in your `PATH`.
 # Add a new profile (prompts for name and email, then generates an SSH keypair)
 gixy profile add <name>
 
-# List all saved profiles (* marks the active profile)
+# List all saved profiles (* marks the profile that applies to the current directory)
 gixy profile list
 
-# Activate a profile globally: sets git user.name/email in ~/.gitconfig
-# and symlinks ~/.ssh/id_ed25519{,.pub} to the profile's keypair
-gixy profile use <name>
+# Show which profile applies to the current directory and why (mapping + global baseline)
+gixy profile status
+
+# Show one profile's identity, SSH key, and the folders mapped to it
+gixy profile show <name>
+
+# Set the GLOBAL baseline identity + SSH key: writes git user.name/email to ~/.gitconfig
+# and symlinks ~/.ssh/id_ed25519{,.pub}. This is what non-shell git (IDEs, GUIs, CI) and
+# plain `ssh` see — per-directory auto-activation works independently of it.
+gixy profile global <name>
 
 # Show SSH key paths, fingerprint, and public key for a profile
 gixy profile keys <name>
@@ -79,10 +86,10 @@ gixy profile map list
 gixy profile map remove ~/projects/work
 
 # Set a fallback profile for unmapped directories
-gixy profile default personal
+gixy profile map default personal
 
 # Clear the fallback profile
-gixy profile default --clear
+gixy profile map default --clear
 ```
 
 When you run `git` inside `~/projects/work/some-repo`, gixy resolves the matching profile and injects its identity and SSH key **into that single command only** — without touching `~/.gitconfig` or the `~/.ssh/id_ed25519` symlink. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`. If no mapping matches and no default is set, git runs unchanged.
@@ -93,7 +100,7 @@ Because each `git` invocation resolves independently, multiple terminals in diff
 
 #### Known limitations
 
-- `git config user.name` reflects your **global baseline** (set by `gixy profile use`), not the per-command injected profile — though commits are stamped with the correct identity. Use `gixy profile use <name>` to set the baseline that non-shell tools see.
+- `git config user.name` reflects your **global baseline** (set by `gixy profile global`), not the per-command injected profile — though commits are stamped with the correct identity. Use `gixy profile global <name>` to set the baseline that non-shell tools see.
 - Tools that invoke git outside your interactive shell (IDEs, GUIs, CI, `/usr/bin/git`) bypass the wrapper and use that global baseline.
 
 ---
@@ -137,7 +144,7 @@ SSH keypairs are stored separately under `~/.ssh/gixy/<profile-name>/id_ed25519{
 ## Roadmap
 
 - [ ] Shell completions
-- [ ] `gixy profile status` — show currently active profile and which mapping triggered it
+- [x] `gixy profile status` — show currently active profile and which mapping triggered it
 
 ---
 

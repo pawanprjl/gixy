@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/pawanprjl/gixy/internal/colors"
@@ -25,6 +26,9 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(colors.Red("usage: gixy profile add <profile-name>"), 1)
 	}
 	profileName := cmd.Args().Get(0)
+	if !validProfileName(profileName) {
+		return cli.Exit(colors.Red("invalid profile name: use only letters, digits, '.', '_', '-' (no '/', '..', or spaces)"), 1)
+	}
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -75,7 +79,7 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 	if err != nil {
 		return cli.Exit(fmt.Errorf("resolve key dir: %w", err), 1)
 	}
-	pubKeyPath := keyDir + "/id_ed25519.pub"
+	pubKeyPath := filepath.Join(keyDir, "id_ed25519.pub")
 	pubKeyBytes, err := os.ReadFile(pubKeyPath)
 	if err != nil {
 		return cli.Exit(fmt.Errorf("read public key: %w", err), 1)
@@ -85,6 +89,22 @@ func addProfile(_ context.Context, cmd *cli.Command) error {
 	fmt.Printf("\n%s\n", colors.Cyan("Public key (add this to GitHub / GitLab):"))
 	fmt.Print(string(pubKeyBytes))
 	return nil
+}
+
+// validProfileName rejects names unsafe as a path segment (used in ~/.ssh/gixy/<name>/).
+func validProfileName(name string) bool {
+	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	for _, r := range name {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
+		case r == '.' || r == '_' || r == '-':
+		default:
+			return false
+		}
+	}
+	return true
 }
 
 func validEmail(email string) bool {

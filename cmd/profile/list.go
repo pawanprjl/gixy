@@ -3,9 +3,9 @@ package profile
 import (
 	"context"
 	"fmt"
-	"os/exec"
+	"os"
+	"path/filepath"
 	"sort"
-	"strings"
 
 	"github.com/pawanprjl/gixy/internal/colors"
 	"github.com/pawanprjl/gixy/internal/config"
@@ -14,20 +14,8 @@ import (
 
 var ListCommand = cli.Command{
 	Name:   "list",
-	Usage:  "List all profiles",
+	Usage:  "List all profiles (* marks the one that applies to the current directory)",
 	Action: listProfiles,
-}
-
-func activeGitIdentity() (name, email string) {
-	nameOut, err := exec.Command("git", "config", "--global", "user.name").Output()
-	if err != nil {
-		return "", ""
-	}
-	emailOut, err := exec.Command("git", "config", "--global", "user.email").Output()
-	if err != nil {
-		return "", ""
-	}
-	return strings.TrimSpace(string(nameOut)), strings.TrimSpace(string(emailOut))
 }
 
 func listProfiles(_ context.Context, _ *cli.Command) error {
@@ -41,7 +29,11 @@ func listProfiles(_ context.Context, _ *cli.Command) error {
 		return nil
 	}
 
-	activeName, activeEmail := activeGitIdentity()
+	// Mark the profile that applies to cwd (what git does via the hook), not the global baseline.
+	active := ""
+	if cwd, err := os.Getwd(); err == nil {
+		_, active = resolveProfileName(filepath.Clean(cwd), cfg)
+	}
 
 	keys := make([]string, 0, len(cfg.Profiles))
 	for k := range cfg.Profiles {
@@ -52,7 +44,7 @@ func listProfiles(_ context.Context, _ *cli.Command) error {
 	for _, k := range keys {
 		p := cfg.Profiles[k]
 		marker := "  "
-		if p.Name == activeName && p.Email == activeEmail {
+		if k == active {
 			marker = colors.Green("* ")
 		}
 		fmt.Printf("%s%-20s %s <%s>\n", marker, colors.Cyan(k), p.Name, p.Email)
