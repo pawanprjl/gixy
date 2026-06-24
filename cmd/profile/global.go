@@ -11,16 +11,25 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-var UseCommand = cli.Command{
-	Name:      "use",
-	Usage:     "Activate a profile globally (git identity + SSH keys)",
+var GlobalCommand = cli.Command{
+	Name:      "global",
+	Usage:     "Set the global baseline identity + SSH key (for non-shell git: IDEs, GUIs, CI)",
 	ArgsUsage: "<profile-name>",
-	Action:    useProfile,
+	Action:    runGlobal,
 }
 
-func useProfile(_ context.Context, cmd *cli.Command) error {
+// UseCommand is a hidden backward-compatible alias for `global` (its former name).
+var UseCommand = cli.Command{
+	Name:      "use",
+	Hidden:    true,
+	Usage:     "Alias for `global`",
+	ArgsUsage: "<profile-name>",
+	Action:    runGlobal,
+}
+
+func runGlobal(_ context.Context, cmd *cli.Command) error {
 	if cmd.Args().Len() != 1 {
-		return cli.Exit(colors.Red("usage: gixy profile use <profile-name>"), 1)
+		return cli.Exit(colors.Red("usage: gixy profile global <profile-name>"), 1)
 	}
 	profileName := cmd.Args().Get(0)
 
@@ -35,7 +44,7 @@ func useProfile(_ context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-// applyProfile sets the global git identity and activates SSH keys for the named profile.
+// applyProfile sets the global baseline identity + SSH symlink (what non-shell git sees).
 func applyProfile(profileName string, cfg *config.Config) error {
 	p, exists := cfg.Profiles[profileName]
 	if !exists {
@@ -54,28 +63,6 @@ func applyProfile(profileName string, cfg *config.Config) error {
 		return fmt.Errorf("activate SSH keys: %w", err)
 	}
 
-	fmt.Println(colors.Green(fmt.Sprintf("Switched to profile %q — %s <%s>", profileName, p.Name, p.Email)))
-	return nil
-}
-
-// applyProfileSilent is like applyProfile but suppresses stdout output.
-func applyProfileSilent(profileName string, cfg *config.Config) error {
-	p, exists := cfg.Profiles[profileName]
-	if !exists {
-		return fmt.Errorf("profile %q not found", profileName)
-	}
-
-	if err := exec.Command("git", "config", "--global", "user.name", p.Name).Run(); err != nil {
-		return fmt.Errorf("set user.name: %w", err)
-	}
-
-	if err := exec.Command("git", "config", "--global", "user.email", p.Email).Run(); err != nil {
-		return fmt.Errorf("set user.email: %w", err)
-	}
-
-	if err := sshutil.ActivateKeys(profileName); err != nil {
-		return fmt.Errorf("activate SSH keys: %w", err)
-	}
-
+	fmt.Println(colors.Green(fmt.Sprintf("Global baseline set to %q — %s <%s>", profileName, p.Name, p.Email)))
 	return nil
 }

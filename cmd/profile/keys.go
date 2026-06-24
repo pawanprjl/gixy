@@ -48,7 +48,7 @@ func showKeys(_ context.Context, cmd *cli.Command) error {
 		return cli.Exit(colors.Yellow(fmt.Sprintf(
 			"No SSH keys found for profile %q. Re-run `gixy profile add %s` to generate them.",
 			profileName, profileName,
-		)), 0)
+		)), 1)
 	}
 
 	pubBytes, err := os.ReadFile(pubPath)
