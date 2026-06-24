@@ -12,7 +12,7 @@ import (
 
 var InitCommand = cli.Command{
 	Name:      "init",
-	Usage:     "Print shell integration hook for auto-activating profiles on cd",
+	Usage:     "Print shell integration hook for auto-activating profiles per git command",
 	ArgsUsage: "[-]",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -90,31 +90,38 @@ func detectShell() string {
 	return filepath.Base(shellEnv)
 }
 
+// The hooks wrap `git` so the cwd's profile identity + SSH key are injected per
+// invocation (no global state mutated). gixy is only spawned when $PWD changes
+// since the last git call; otherwise the cached env is re-applied for free.
 const zshHook = `# gixy shell integration
-autoload -Uz add-zsh-hook
-function _gixy_auto_activate() {
-  gixy profile activate --silent
+function git() {
+  if [ "$PWD" != "$__gixy_pwd" ]; then
+    __gixy_env="$(command gixy profile resolve --shell posix)"
+    __gixy_pwd="$PWD"
+  fi
+  ( eval "$__gixy_env"; command git "$@" )
 }
-add-zsh-hook chpwd _gixy_auto_activate
-_gixy_auto_activate
 `
 
 const bashHook = `# gixy shell integration
-function _gixy_auto_activate() {
-  gixy profile activate --silent
+function git() {
+  if [ "$PWD" != "$__gixy_pwd" ]; then
+    __gixy_env="$(command gixy profile resolve --shell posix)"
+    __gixy_pwd="$PWD"
+  fi
+  ( eval "$__gixy_env"; command git "$@" )
 }
-function cd() {
-  builtin cd "$@" && _gixy_auto_activate
-}
-_gixy_auto_activate
 `
 
 const fishHook = `# gixy shell integration
-function _gixy_auto_activate
-  gixy profile activate --silent
+function git
+  if test "$PWD" != "$__gixy_pwd"
+    set -g __gixy_env (command gixy profile resolve --shell fish | string collect)
+    set -g __gixy_pwd "$PWD"
+  end
+  begin
+    eval "$__gixy_env"
+    command git $argv
+  end
 end
-function cd
-  builtin cd $argv; and _gixy_auto_activate
-end
-_gixy_auto_activate
 `

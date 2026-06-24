@@ -51,9 +51,9 @@ gixy profile edit <name>
 gixy profile delete <name>
 ```
 
-### Auto-activation (pyenv-style)
+### Auto-activation
 
-Map folder paths to profiles so the right identity activates automatically when you `cd` into a directory.
+Map folder paths to profiles so the right identity and SSH key are used automatically for every `git` command, based on the directory you run it in.
 
 **1. Set up shell integration (one-time)**
 
@@ -85,9 +85,16 @@ gixy profile default personal
 gixy profile default --clear
 ```
 
-When you `cd` into `~/projects/work/some-repo`, gixy automatically runs `profile use work` in the background — switching your global git identity and SSH keys. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`.
+When you run `git` inside `~/projects/work/some-repo`, gixy resolves the matching profile and injects its identity and SSH key **into that single command only** — without touching `~/.gitconfig` or the `~/.ssh/id_ed25519` symlink. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`. If no mapping matches and no default is set, git runs unchanged.
 
-If no mapping matches and no default is set, gixy does nothing.
+Because each `git` invocation resolves independently, multiple terminals in different projects never interfere with each other — and multi-account GitHub works on plain `git@github.com` remotes (gixy sets `GIT_SSH_COMMAND` with `IdentitiesOnly=yes`, so the right key is offered without `~/.ssh/config` host aliases). gixy is only invoked when you change directory, so repeated git commands in the same repo add no overhead.
+
+**Respecting per-repo overrides:** if a repo has an explicit local `user.email` (or `core.sshCommand`), gixy leaves it alone so git's normal precedence applies.
+
+#### Known limitations
+
+- `git config user.name` reflects your **global baseline** (set by `gixy profile use`), not the per-command injected profile — though commits are stamped with the correct identity. Use `gixy profile use <name>` to set the baseline that non-shell tools see.
+- Tools that invoke git outside your interactive shell (IDEs, GUIs, CI, `/usr/bin/git`) bypass the wrapper and use that global baseline.
 
 ---
 
