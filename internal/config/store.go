@@ -13,23 +13,10 @@ type Profile struct {
 	Email string `json:"email"`
 }
 
-type CommitGenEntry struct {
-	Provider string `json:"provider"`
-	Model    string `json:"model"`
-	APIKey   string `json:"api_key"`
-	Host     string `json:"host,omitempty"` // used by ollama
-}
-
-type CommitGenConfig struct {
-	Active    string                    `json:"active"`
-	Providers map[string]CommitGenEntry `json:"providers"`
-}
-
 type Config struct {
 	Profiles       map[string]Profile `json:"profiles"`
 	PathMappings   map[string]string  `json:"path_mappings,omitempty"`
 	DefaultProfile string             `json:"default_profile,omitempty"`
-	CommitGen      *CommitGenConfig   `json:"commit_gen,omitempty"`
 }
 
 func configPath() (string, error) {
@@ -63,9 +50,6 @@ func LoadConfig() (*Config, error) {
 	}
 	if cfg.PathMappings == nil {
 		cfg.PathMappings = make(map[string]string)
-	}
-	if cfg.CommitGen != nil && cfg.CommitGen.Providers == nil {
-		cfg.CommitGen.Providers = make(map[string]CommitGenEntry)
 	}
 	return &cfg, nil
 }

@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pawanprjl/gixy/cmd/commit"
 	initcmd "github.com/pawanprjl/gixy/cmd/init"
 	"github.com/pawanprjl/gixy/cmd/profile"
-	gixyprovider "github.com/pawanprjl/gixy/cmd/provider"
 	"github.com/urfave/cli/v3"
 )
 
@@ -33,23 +31,6 @@ func main() {
 					&profile.MapGroupCommand,
 					&profile.DefaultCommand,
 					&profile.ActivateCommand,
-				},
-			},
-			{
-				Name:  "commit",
-				Usage: "AI-powered commit message generation",
-				Commands: []*cli.Command{
-					&commit.GenerateCommand,
-				},
-			},
-			{
-				Name:  "provider",
-				Usage: "Manage AI providers",
-				Commands: []*cli.Command{
-					&gixyprovider.AddCommand,
-					&gixyprovider.ListCommand,
-					&gixyprovider.UseCommand,
-					&gixyprovider.RemoveCommand,
 				},
 			},
 			&initcmd.InitCommand,
