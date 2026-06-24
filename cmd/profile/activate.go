@@ -11,10 +11,14 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
+// ActivateCommand is legacy: it mutates global git config + SSH symlink and was used
+// by the old cd-hook. Kept so shells still running the old hook keep working after an
+// upgrade; the current `gixy init` hook uses `profile resolve` instead. Remove in a
+// future version once users have re-run `gixy init`.
 var ActivateCommand = cli.Command{
 	Name:   "activate",
 	Hidden: true,
-	Usage:  "Auto-activate the profile for the current directory (used by shell hooks)",
+	Usage:  "Auto-activate the profile for the current directory (legacy; used by old shell hooks)",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:  "silent",

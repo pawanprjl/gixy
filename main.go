@@ -31,6 +31,7 @@ func main() {
 					&profile.MapGroupCommand,
 					&profile.DefaultCommand,
 					&profile.ActivateCommand,
+					&profile.ResolveCommand,
 				},
 			},
 			&initcmd.InitCommand,
