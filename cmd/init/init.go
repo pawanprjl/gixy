@@ -90,38 +90,37 @@ func detectShell() string {
 	return filepath.Base(shellEnv)
 }
 
-// The hooks wrap `git` so the cwd's profile identity + SSH key are injected per
-// invocation (no global state mutated). gixy is only spawned when $PWD changes
-// since the last git call; otherwise the cached env is re-applied for free.
+// The hooks sync the cwd's repo to its mapped profile (writing the identity +
+// SSH key into the repo's local git config) before running git. gixy is only
+// spawned when $PWD changes since the last git call; once a repo is synced, git
+// itself applies the profile for every tool, so no further gixy involvement is
+// needed.
 const zshHook = `# gixy shell integration
 function git() {
   if [ "$PWD" != "$__gixy_pwd" ]; then
-    __gixy_env="$(command gixy profile resolve --shell posix)"
+    command gixy profile sync
     __gixy_pwd="$PWD"
   fi
-  ( eval "$__gixy_env"; command git "$@" )
+  command git "$@"
 }
 `
 
 const bashHook = `# gixy shell integration
 function git() {
   if [ "$PWD" != "$__gixy_pwd" ]; then
-    __gixy_env="$(command gixy profile resolve --shell posix)"
+    command gixy profile sync
     __gixy_pwd="$PWD"
   fi
-  ( eval "$__gixy_env"; command git "$@" )
+  command git "$@"
 }
 `
 
 const fishHook = `# gixy shell integration
 function git
   if test "$PWD" != "$__gixy_pwd"
-    set -g __gixy_env (command gixy profile resolve --shell fish | string collect)
+    command gixy profile sync
     set -g __gixy_pwd "$PWD"
   end
-  begin
-    eval "$__gixy_env"
-    command git $argv
-  end
+  command git $argv
 end
 `

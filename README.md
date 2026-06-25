@@ -9,7 +9,7 @@ A git identity & SSH profile manager — switch author identity and SSH keys per
 ## Features
 
 - **Profile management** — define named author profiles (name + email), switch them globally in one command
-- **Auto-activation** — map folder paths to profiles; the correct profile is applied automatically for every `git` command, based on the directory you run it in
+- **Auto-activation** — map folder paths to profiles; gixy writes the right profile into each repo's local git config, so the correct identity & SSH key are used by every tool (your shell, Claude Code, IDEs, CI) — not just your interactive shell
 - **SSH key management** — each profile gets its own ed25519 keypair; `profile global` symlinks the baseline keys to `~/.ssh/id_ed25519`
 - **Config stored at** `~/.config/gixy/config`
 - **Extensible** — designed to grow with more git-enhancing commands over time
@@ -56,6 +56,14 @@ gixy profile edit <name>
 
 # Delete a profile
 gixy profile delete <name>
+
+# Pin the CURRENT repo to a profile by writing its identity + SSH key into the
+# repo's local .git/config (so every git tool — Claude Code, IDEs, CI — uses it).
+# Defaults to the profile mapped to this directory; pass a name to override.
+gixy profile pin [name]
+
+# Remove gixy's identity/SSH settings from the current repo's local config
+gixy profile unpin
 ```
 
 ### Auto-activation
@@ -92,16 +100,19 @@ gixy profile map default personal
 gixy profile map default --clear
 ```
 
-When you run `git` inside `~/projects/work/some-repo`, gixy resolves the matching profile and injects its identity and SSH key **into that single command only** — without touching `~/.gitconfig` or the `~/.ssh/id_ed25519` symlink. The most specific matching path wins, so `~/projects/work/client-acme` can have its own mapping that overrides `~/projects/work`. If no mapping matches and no default is set, git runs unchanged.
+When you first run `git` inside `~/projects/work/some-repo`, gixy resolves the matching profile and **writes its identity + SSH key into that repo's local `.git/config`** (`user.name`, `user.email`, `core.sshCommand`, plus a `gixy.profile` marker). From then on git itself applies the profile for **every** caller — your shell, Claude Code, IDEs, GUIs, CI — with no further gixy involvement. The most specific matching path wins, so `~/projects/work/client-acme` can override `~/projects/work`. If no mapping matches and no default is set, git runs unchanged.
 
-Because each `git` invocation resolves independently, multiple terminals in different projects never interfere with each other — and multi-account GitHub works on plain `git@github.com` remotes (gixy sets `GIT_SSH_COMMAND` with `IdentitiesOnly=yes`, so the right key is offered without `~/.ssh/config` host aliases). gixy is only invoked when you change directory, so repeated git commands in the same repo add no overhead.
+Because the profile lives in the repo's own config, multiple terminals never interfere with each other, and multi-account GitHub works on plain `git@github.com` remotes (`core.sshCommand` uses `IdentitiesOnly=yes`, so the right key is offered without `~/.ssh/config` host aliases). The shell hook only runs when you change directory, and once a repo is synced it does no work at all.
 
-**Respecting per-repo overrides:** if a repo has an explicit local `user.email` (or `core.sshCommand`), gixy leaves it alone so git's normal precedence applies.
+**Respecting per-repo overrides:** if a repo has a hand-set local `user.email` and no `gixy.profile` marker, gixy never touches it.
 
-#### Known limitations
+**Pinning manually:** auto-sync only fires in a shell that has the hook. To pin a repo without it (or to refresh one after editing a profile's email/key), run `gixy profile pin` inside the repo. Revert with `gixy profile unpin`.
 
-- `git config user.name` reflects your **global baseline** (set by `gixy profile global`), not the per-command injected profile — though commits are stamped with the correct identity. Use `gixy profile global <name>` to set the baseline that non-shell tools see.
-- Tools that invoke git outside your interactive shell (IDEs, GUIs, CI, `/usr/bin/git`) bypass the wrapper and use that global baseline.
+#### Known behavior
+
+- gixy writes to each repo's **local** `.git/config` — untracked, reversible (`gixy profile unpin`), and inspectable via `git config --local --list`.
+- Editing a profile's identity/key does not retroactively rewrite already-pinned repos with the same profile name; run `gixy profile pin` in those repos to refresh them. (Auto-sync re-pins only when a folder's mapped *profile* changes.)
+- `gixy profile global <name>` still sets a global baseline (`~/.gitconfig` + `~/.ssh/id_ed25519` symlink) for repos that aren't mapped/pinned.
 
 ---
 
