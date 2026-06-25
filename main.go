@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const version = "1.3.0"
+const version = "1.5.0"
 
 func main() {
 	app := &cli.Command{
@@ -31,7 +31,9 @@ func main() {
 					&profile.GlobalCommand,
 					&profile.MapGroupCommand,
 					&profile.StatusCommand,
-					&profile.ResolveCommand,
+					&profile.PinCommand,
+					&profile.UnpinCommand,
+					&profile.SyncCommand,
 					&profile.UseCommand,
 				},
 			},
